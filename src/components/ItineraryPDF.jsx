@@ -125,31 +125,37 @@ export default function ItineraryPDF({ data }) {
         items: activity.items.filter(item => item.trim() !== "")
       })).filter(activity => activity.items.length > 0)
     })),
-    flights: data.flights.map(flight => ({
-      date: new Date(flight.date).toLocaleDateString('en-GB', { 
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short',
-        year: '2-digit'
-      }) || flight.date,
-      details: flight.details
-    })).filter(flight => flight.details.trim() !== ""),
-    hotels: data.hotels.map(hotel => [
-      hotel.city,
-      hotel.checkIn,
-      hotel.checkOut,
-      hotel.nights,
-      hotel.hotelName
-    ]).filter(hotel => hotel.some(field => field.trim() !== "")),
-    activities: data.activities.map(activity => [
-      activity.city,
-      activity.activityName,
-      activity.type,
-      activity.duration
-    ]).filter(activity => activity.some(field => field.trim() !== "")),
+    flights: data.flights
+      .filter(flight => flight && flight.details && flight.details.trim() !== "")
+      .map(flight => ({
+        date: flight.date ? new Date(flight.date).toLocaleDateString('en-GB', { 
+          weekday: 'short',
+          day: 'numeric',
+          month: 'short',
+          year: '2-digit'
+        }) : flight.date || "TBD",
+        details: flight.details
+      })),
+    hotels: data.hotels
+      .filter(hotel => hotel && (hotel.city || hotel.hotelName || hotel.checkIn || hotel.checkOut || hotel.nights))
+      .map(hotel => [
+        hotel.city || "",
+        hotel.checkIn || "",
+        hotel.checkOut || "",
+        hotel.nights || "",
+        hotel.hotelName || ""
+      ]),
+    activities: data.activities
+      .filter(activity => activity && (activity.city || activity.activityName || activity.type || activity.duration))
+      .map(activity => [
+        activity.city || "",
+        activity.activityName || "",
+        activity.type || "",
+        activity.duration || ""
+      ]),
     paymentPlan: data.paymentPlan,
-    inclusions: data.inclusions.filter(inclusion => inclusion.trim() !== ""),
-    exclusions: data.exclusions.filter(exclusion => exclusion.trim() !== "")
+    inclusions: data.inclusions.filter(inclusion => inclusion && inclusion.trim() !== ""),
+    exclusions: data.exclusions.filter(exclusion => exclusion && exclusion.trim() !== "")
   };
 
   // Calculate how many days can fit per page (roughly 2 days per page)
@@ -183,7 +189,7 @@ export default function ItineraryPDF({ data }) {
         <Footer />
       </Page>
 
-      {/* Dynamic Day Pages for remaining days */}
+      Dynamic Day Pages for remaining days
       {dayPages.map((daysOnPage, pageIndex) => (
         <Page key={`day-page-${pageIndex}`} size="A4" style={commonStyles.page}>
           <View style={commonStyles.pageContent}>
